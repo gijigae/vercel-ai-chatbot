@@ -11,6 +11,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
+const perplexity = new OpenAI({
+  apiKey: process.env.PERPLEXITY_API_KEY,
+  baseURL: 'https://api.perplexity.ai'
+})
+
 export async function POST(req: Request) {
   const json = await req.json()
   const { messages, previewToken } = json
@@ -26,13 +31,19 @@ export async function POST(req: Request) {
     openai.apiKey = previewToken
   }
 
-  const res = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
-    messages,
-    temperature: 0.7,
+  // const res = await openai.chat.completions.create({
+  //   model: 'gpt-3.5-turbo',
+  //   messages,
+  //   temperature: 0.7,
+  //   stream: true
+  // })
+
+  const res = await perplexity.chat.completions.create({
+    model: 'pplx-70b-online',
+    messages: messages,
     stream: true
   })
-
+  
   const stream = OpenAIStream(res, {
     async onCompletion(completion) {
       const title = json.messages[0].content.substring(0, 100)
